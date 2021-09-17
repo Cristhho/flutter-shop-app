@@ -9,37 +9,39 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = Provider.of<Product>(context);
     return ClipRRect(
-      borderRadius: BorderRadius.circular(10.0),
-      child: GridTile(
-        child: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushNamed(ProductDetailScreen.routeName, arguments: product.id);
-          },
-          child: Image.network(
-            product.imageUrl,
-            fit: BoxFit.cover,
-          ),
-        ),
-        footer: GridTileBar(
-          backgroundColor: Colors.black38,
-          leading: IconButton(
-            icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
-            onPressed: () {
-              product.toggleFavoriteState();
+        borderRadius: BorderRadius.circular(10.0),
+        child: GridTile(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushNamed(ProductDetailScreen.routeName, arguments: product.id);
             },
-            color: Theme.of(context).accentColor,
+            child: Image.network(
+              product.imageUrl,
+              fit: BoxFit.cover,
+            ),
           ),
-          title: Text(
-            product.title,
-            textAlign: TextAlign.center,
-          ),
-          trailing: IconButton(
-            icon: Icon(Icons.shopping_cart),
-            onPressed: () {},
-            color: Theme.of(context).accentColor,
+          footer: GridTileBar(
+            backgroundColor: Colors.black38,
+            leading: Consumer<Product>(
+              builder: (ctx, product, _) => IconButton(
+                icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
+                onPressed: () {
+                  product.toggleFavoriteState();
+                },
+                color: Theme.of(context).accentColor,
+              )
+            ),
+            title: Text(
+              product.title,
+              textAlign: TextAlign.center,
+            ),
+            trailing: IconButton(
+              icon: Icon(Icons.shopping_cart),
+              onPressed: () {},
+              color: Theme.of(context).accentColor,
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
