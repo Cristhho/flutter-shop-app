@@ -21,4 +21,12 @@ class Product with ChangeNotifier {
     isFavorite = !isFavorite;
     notifyListeners();
   }
+
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'description': description,
+    'imageUrl': imageUrl,
+    'price': price,
+    'isFavorite': isFavorite,
+  };
 }
