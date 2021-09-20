@@ -76,7 +76,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     super.dispose();
   }
 
-  void _saveForm() {
+  void _saveForm() async {
     final isValid = _form.currentState!.validate();
     if (!isValid)
       return;
@@ -87,35 +87,34 @@ class _EditProductScreenState extends State<EditProductScreen> {
     if (_product.id.isNotEmpty) {
       Provider.of<Products>(context, listen: false).updateProduct(_product.id, _product);
       setState(() {
-        _isLoading = true;
+        _isLoading = false;
       });
       Navigator.of(context).pop();
-    } else
-      Provider.of<Products>(context, listen: false)
-          .addProduct(_product)
-          .catchError((error) {
-            return showDialog<Null>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: Text('An error ocurred!'),
-                content: Text('Something went wrong.'),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('OK'),
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                    },
-                  )
-                ],
-              )
-            );
-          })
-          .then((_) {
-            setState(() {
-              _isLoading = true;
-            });
-            Navigator.of(context).pop();
-          });
+    } else {
+      try {
+        await Provider.of<Products>(context, listen: false).addProduct(_product);
+      } catch (error) {
+        await showDialog<Null>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text('An error ocurred!'),
+              content: Text('Something went wrong.'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                )
+              ],
+            ));
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.of(context).pop();
+      }
+    }
   }
 
   @override
