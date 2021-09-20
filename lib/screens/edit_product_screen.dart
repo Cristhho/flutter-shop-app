@@ -19,6 +19,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final _form = GlobalKey<FormState>();
   var _product = Product(id: '', title: '', description: '', price: 0.0, imageUrl: '');
   var _isInit = true;
+  var _isLoading = false;
   var _initValues = {
     'title': '',
     'description': '',
@@ -80,11 +81,41 @@ class _EditProductScreenState extends State<EditProductScreen> {
     if (!isValid)
       return;
     _form.currentState!.save();
+    setState(() {
+      _isLoading = true;
+    });
     if (_product.id.isNotEmpty) {
       Provider.of<Products>(context, listen: false).updateProduct(_product.id, _product);
+      setState(() {
+        _isLoading = true;
+      });
+      Navigator.of(context).pop();
     } else
-      Provider.of<Products>(context, listen: false).addProduct(_product);
-    Navigator.of(context).pop();
+      Provider.of<Products>(context, listen: false)
+          .addProduct(_product)
+          .catchError((error) {
+            return showDialog<Null>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text('An error ocurred!'),
+                content: Text('Something went wrong.'),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('OK'),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                  )
+                ],
+              )
+            );
+          })
+          .then((_) {
+            setState(() {
+              _isLoading = true;
+            });
+            Navigator.of(context).pop();
+          });
   }
 
   @override
@@ -96,7 +127,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
           IconButton(onPressed: _saveForm, icon: Icon(Icons.save))
         ],
       ),
-      body: Padding(
+      body: _isLoading
+        ? Center(
+            child: CircularProgressIndicator(),
+          )
+        : Padding(
         padding: EdgeInsets.all(15.0),
         child: Form(
           key: _form,
