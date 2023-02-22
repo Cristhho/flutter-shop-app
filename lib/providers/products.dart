@@ -8,6 +8,9 @@ import '../model/http_exception.dart';
 
 class Products with ChangeNotifier {
   List<Product> _items = [];
+  final String authToken;
+
+  Products(this.authToken, this._items);
 
   List<Product> get items {
     return [..._items];
@@ -22,7 +25,7 @@ class Products with ChangeNotifier {
   }
 
   Future fetchProducts() async {
-    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products.json');
+    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products.json?auth=$authToken');
     try {
       final response = await http.get(url);
       final data = json.decode(response.body) as Map;
@@ -45,7 +48,7 @@ class Products with ChangeNotifier {
   }
 
   Future addProduct(Product product) async {
-    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products.json');
+    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products.json?auth=$authToken');
     try {
       final response = await http.post(url, body: json.encode(product));
       final newProduct = Product(id: json.decode(response.body)['name'],
@@ -62,7 +65,7 @@ class Products with ChangeNotifier {
   Future updateProduct(String id, Product product) async {
     final index = _items.indexWhere((prod) => prod.id == id);
     if (index >= 0) {
-      final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products/$id.json');
+      final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken');
       product.isFavorite = false;
       try {
         await http.patch(url, body: json.encode(product));
@@ -75,7 +78,7 @@ class Products with ChangeNotifier {
   }
 
   Future deleteProduct(String id) async {
-    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products/$id.json');
+    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken');
     final index = _items.indexWhere((prod) => prod.id == id);
     Product? _product = _items[index];
     _items.removeAt(index);
