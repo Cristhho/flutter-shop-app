@@ -1,6 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth.dart';
+import '../model/http_exception.dart';
 
 enum AuthMode { Signup, Login }
 
@@ -100,7 +104,22 @@ class _AuthCardState extends State<AuthCard> {
   var _isLoading = false;
   final _passwordController = TextEditingController();
 
-  void _submit() {
+  void _showErrorDialog(String message) {
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: Text('An error occurred'),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(ctx).pop();
+          },
+          child: Text('Ok')
+        )
+      ],
+    ));
+  }
+
+  Future _submit() async {
     if (!_formKey.currentState!.validate()) {
       // Invalid!
       return;
@@ -109,11 +128,29 @@ class _AuthCardState extends State<AuthCard> {
     setState(() {
       _isLoading = true;
     });
-    if (_authMode == AuthMode.Login) {
-      // Log user in
-    } else {
-      // Sign user up
+    try {
+      if (_authMode == AuthMode.Login) {
+        await Provider.of<Auth>(context, listen: false).login(_authData['email']!, _authData['password']!);
+      } else {
+        await Provider.of<Auth>(context, listen: false).signup(_authData['email']!, _authData['password']!);
+      }
+    } on HttpException catch (error) {
+      var message = 'Authentication failed';
+      if (error.toString().contains('EMAIL_EXISTS')) {
+        message = 'This email address is already in use';
+      } else if (error.toString().contains('WEAK_PASSWORD')) {
+        message = 'Password should be at least 6 characters';
+      } else if (error.toString().contains('EMAIL_NOT_FOUND')) {
+        message = 'This email does not exist';
+      } else if (error.toString().contains('INVALID_PASSWORD')) {
+        message = 'Password is invalid';
+      }
+      _showErrorDialog(message);
+    } catch (error) {
+      const message = 'Could not authenticate. Please try again later.';
+      _showErrorDialog(message);
     }
+
     setState(() {
       _isLoading = false;
     });
@@ -169,7 +206,7 @@ class _AuthCardState extends State<AuthCard> {
                   obscureText: true,
                   controller: _passwordController,
                   validator: (value) {
-                    if (value!.isEmpty || value!.length < 5) {
+                    if (value!.isEmpty || value.length < 5) {
                       return 'Password is too short!';
                     }
                   },
