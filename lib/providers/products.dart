@@ -25,8 +25,9 @@ class Products with ChangeNotifier {
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-  Future fetchProducts() async {
-    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products.json?auth=$authToken');
+  Future fetchProducts([bool filter = false]) async {
+    final filterUrl =  filter ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products.json?auth=$authToken&$filterUrl');
     try {
       final response = await http.get(url);
       final data = json.decode(response.body) as Map;
@@ -54,7 +55,13 @@ class Products with ChangeNotifier {
   Future addProduct(Product product) async {
     final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/products.json?auth=$authToken');
     try {
-      final response = await http.post(url, body: json.encode(product));
+      final response = await http.post(url, body: json.encode({
+        'title': product.title,
+        'description': product.description,
+        'price': product.price,
+        'imageUrl': product.imageUrl,
+        'creatorId': userId,
+      }));
       final newProduct = Product(id: json.decode(response.body)['name'],
           title: product.title, description: product.description,
           price: product.price, imageUrl: product.imageUrl);
