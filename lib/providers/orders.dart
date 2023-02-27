@@ -22,16 +22,16 @@ class Order {
 class Orders with ChangeNotifier {
   List<Order> _orders = [];
   final String authToken;
+  final String userId;
 
-
-  Orders(this._orders, this.authToken);
+  Orders(this._orders, this.authToken, this.userId);
 
   List<Order> get orders {
     return [..._orders];
   }
 
   Future fetchOrders() async {
-    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/orders.json?auth=$authToken');
+    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken');
     final res = await http.get(url);
     final data = json.decode(res.body) as Map?;
     if (data == null) return;
@@ -50,7 +50,7 @@ class Orders with ChangeNotifier {
   }
 
   Future addOrder(List<CartItem> products, double total) async {
-    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/orders.json?auth=$authToken');
+    final url = Uri.parse('https://flutter-udemy-df306-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken');
     final date = DateTime.now();
     try {
       final res = await http.post(url, body: json.encode({
